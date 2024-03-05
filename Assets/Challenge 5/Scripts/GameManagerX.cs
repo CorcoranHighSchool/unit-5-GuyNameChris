@@ -9,30 +9,51 @@ public class GameManagerX : MonoBehaviour
 {
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI gameOverText;
+    public TextMeshProUGUI timerText;
     public GameObject titleScreen;
     public Button restartButton; 
 
     public List<GameObject> targetPrefabs;
 
     private int score;
+    public float timeLeft = 60;
     private float spawnRate = 1.5f;
     public bool isGameActive;
-
+    public bool timerIsRunning = false;
     private float spaceBetweenSquares = 2.5f; 
     private float minValueX = -3.75f; //  x value of the center of the left-most square
     private float minValueY = -3.75f; //  y value of the center of the bottom-most square
     
     // Start the game, remove title screen, reset score, and adjust spawnRate based on difficulty button clicked
-    public void StartGame()
+    public void StartGame(int difficulty)
     {
-        spawnRate /= 5;
+        spawnRate /= difficulty;
         isGameActive = true;
+        gameOverText.gameObject.SetActive(false);
+        restartButton.gameObject.SetActive(false);
         StartCoroutine(SpawnTarget());
         score = 0;
         UpdateScore(0);
         titleScreen.SetActive(false);
+        timerIsRunning = true;
     }
-
+     void Update()
+    {
+        if (timerIsRunning)
+        {
+            if (timeLeft > 0)
+            {
+                timeLeft -= Time.deltaTime;
+                timerText.SetText("Timer: " + Mathf.Round(timeLeft));
+            }
+            else
+            {
+                GameOver();
+                timeLeft = 0;
+                timerIsRunning = false;
+            }
+        }
+    }
     // While game is active spawn a random target
     IEnumerator SpawnTarget()
     {
@@ -70,15 +91,16 @@ public class GameManagerX : MonoBehaviour
     public void UpdateScore(int scoreToAdd)
     {
         score += scoreToAdd;
-        scoreText.text = "score";
+        scoreText.text = "Score: " + score;
     }
 
     // Stop game, bring up game over text and restart button
     public void GameOver()
     {
-        gameOverText.gameObject.SetActive(true);
-        restartButton.gameObject.SetActive(false);
         isGameActive = false;
+        timerIsRunning = false;
+        gameOverText.gameObject.SetActive(true);
+        restartButton.gameObject.SetActive(true);
     }
 
     // Restart game by reloading the scene
